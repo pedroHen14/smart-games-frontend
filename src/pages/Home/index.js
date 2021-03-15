@@ -1,4 +1,5 @@
 import {
+  AlertOrder,
   Container,
   Content,
   ContentModal,
@@ -8,7 +9,6 @@ import {
   FooterContent,
   FooterInfo,
   Header,
-  ImageModal,
   Logo,
   Menu,
   PriceModal,
@@ -20,31 +20,76 @@ import {
 import imageLogo from "../../assets/hustle.png";
 import { Button, CardContent, Typography } from "@material-ui/core";
 import { useEffect, useState } from "react";
-import { api } from "../../services/api";
+import { api, mapApi } from "../../services/api";
 import Modal from "../../components/Modal";
-import { format } from "date-fns";
+import qrCode from "../../assets/frame.png";
 
 function Home() {
   const [games, setGames] = useState([]);
 
-  const [gameModal, setGameModal] = useState([]);
-
   const [shops, setShops] = useState([]);
 
-  const [openModal, setOpenModal] = useState(false);
+  const [gameModal, setGameModal] = useState([]);
 
-  const handleModalGame = async (id) => {
-    setOpenModal(true);
+  const [openModalGame, setOpenModalGame] = useState(false);
+
+  const [mapModal, setMapModal] = useState([]);
+
+  // const [coordinateShop, setCoordinateShop] = useState([]);
+
+  const [openModalMap, setOpenModalMap] = useState(false);
+
+  const handleOrder = async (price, gameId) => {
+    setOpenModalGame(false);
 
     try {
-      const response = await api.get(`/games/${id}`);
+      const response = await api.post("/order", {
+        price: price,
+        gameId: gameId,
+      });
 
-      setGameModal(response.data);
       console.log(response.data);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleModalGame = async (id) => {
+    setOpenModalGame(true);
+
+    try {
+      const response = await api.get(`/games/${id}`);
+
+      setGameModal(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleModalMaps = async (id) => {
+    setOpenModalGame(false);
+    setOpenModalMap(true);
+
+    try {
+      const response = await api.get(`/shops/${id}`);
+
+      setMapModal(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // const handleMap = async ({ number, street, city, state }) => {
+  //   try {
+  //     const response = await mapApi.get(
+  //       `json?address=${number}+${street},+${city},+${state}&key=AIzaSyD3w6lbgHvrSGFktOakzpXRsqhBEzLzFKY`
+  //     );
+
+  //     setCoordinateShop(response.data.results[0]);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   useEffect(() => {
     const loadGames = async () => {
@@ -74,8 +119,17 @@ function Home() {
 
   return (
     <>
-      {openModal && (
-        <Modal title={gameModal.name} handleClose={() => setOpenModal(false)}>
+      {openModalMap && (
+        <Modal
+          title={mapModal.name}
+          handleClose={() => setOpenModalMap(false)}
+        ></Modal>
+      )}
+      {openModalGame && (
+        <Modal
+          title={gameModal.name}
+          handleClose={() => setOpenModalGame(false)}
+        >
           <ContentModal>
             <img src={gameModal.image} alt="Imagem do jogo"></img>
             <DescriptionModal>
@@ -93,7 +147,14 @@ function Home() {
                     Lojas Disponíveis
                   </Typography>
                   {gameModal.Shops.map((s) => (
-                    <Typography gutterBottom variant="body2" component="h3">
+                    <Typography
+                      gutterBottom
+                      variant="body2"
+                      component="h3"
+                      onClick={() => {
+                        handleModalMaps(s.id);
+                      }}
+                    >
                       R. {s.street}, {s.number} - {s.state}
                     </Typography>
                   ))}
@@ -109,7 +170,13 @@ function Home() {
               </Typography>
             </DeveloperModal>
             <PriceModal>
-              <Button variant="contained">Comprar</Button>
+              <img src={qrCode} alt="QRcode Desconto" />
+              <Button
+                variant="contained"
+                onClick={() => handleOrder(gameModal.price, gameModal.id)}
+              >
+                Comprar
+              </Button>
               <Typography variant="body2" component="h1">
                 R$ {gameModal.price},00
               </Typography>
@@ -141,7 +208,7 @@ function Home() {
                   <Typography gutterBottom variant="body1" component="h3">
                     Preço: R${g.price},00
                   </Typography>
-                  <Typography gutterBottom variant="body1" component="h3">
+                  <Typography gutterBottom variant="body2" component="h4">
                     Desenvolvedor: {g.developer}
                   </Typography>
                 </CardContent>

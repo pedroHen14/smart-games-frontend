@@ -92,6 +92,9 @@ export const ProductImage = styled(CardMedia)`
 `;
 
 export const ProductActionArea = styled(CardActionArea)`
+  h3 {
+    font-weight: bold;
+  }
   :hover {
     background-color: var(--dark);
     color: white;
@@ -143,26 +146,48 @@ export const DescriptionModal = styled.div`
 
 export const ShopsModal = styled.div`
   grid-area: shops;
+
+  > h3 {
+    transition: 0.2s;
+    cursor: pointer;
+
+    :hover {
+      color: var(--light);
+    }
+
+    :active {
+      transform: scale(0.95);
+    }
+  }
 `;
 
 export const PriceModal = styled.div`
   grid-area: price;
-  display: flex;
-  flex-direction: row;
+  display: grid;
   justify-content: flex-end;
-  align-items: flex-end;
+  align-items: center;
+  grid-template-areas: "code code" "button text";
 
   > button {
+    grid-area: button;
     background-color: green;
     color: white;
     flex: 2;
   }
 
   > h1 {
+    grid-area: text;
     flex: 1;
     background-color: #000000;
     padding: 5px;
     border-radius: 0 5px 5px 0;
+  }
+
+  > img {
+    grid-area: code;
+    max-width: 150px;
+    border-radius: 10px;
+    margin-bottom: 20px;
   }
 `;
 
