@@ -87,7 +87,7 @@ export const ProductCard = styled(Card)`
 `;
 
 export const ProductImage = styled(CardMedia)`
-  height: 180px;
+  height: 400px;
   box-shadow: 2px 2px 2px var(--dark);
 `;
 
@@ -126,16 +126,17 @@ export const FooterInfo = styled.div`
 
 export const ContentModal = styled.div`
   display: grid;
-  grid-template-areas: "image image description description" "image image shops price" "developer developer developer developer";
+  grid-template-areas: "image image description description" "image image platform price" "image image shops price";
   width: 1280px;
   gap: 20px;
+  align-items: center;
   padding: 30px;
 
   > img {
-    max-width: 640px;
-    min-width: 640px;
+    width: 340px;
+    max-height: 800px;
     grid-area: image;
-    border-radius: 20px;
+    border-radius: 5px;
     box-shadow: 3px 3px 3px black;
   }
 `;
@@ -164,7 +165,7 @@ export const ShopsModal = styled.div`
 export const PriceModal = styled.div`
   grid-area: price;
   display: grid;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   grid-template-areas: "code code" "button text";
 
@@ -172,12 +173,11 @@ export const PriceModal = styled.div`
     grid-area: button;
     background-color: green;
     color: white;
-    flex: 2;
+    height: 50px;
   }
 
   > h1 {
     grid-area: text;
-    flex: 1;
     background-color: #000000;
     padding: 5px;
     border-radius: 0 5px 5px 0;
@@ -185,19 +185,17 @@ export const PriceModal = styled.div`
 
   > img {
     grid-area: code;
-    max-width: 150px;
+    max-width: 200px;
     border-radius: 10px;
     margin-bottom: 20px;
   }
 `;
 
-export const DeveloperModal = styled.div`
-  grid-area: developer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+export const PlatformModal = styled.div`
+  grid-area: platform;
 
-  > h2 {
-    font-weight: bold;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
 `;

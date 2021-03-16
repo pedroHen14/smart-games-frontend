@@ -1,10 +1,9 @@
 import {
-  AlertOrder,
   Container,
   Content,
   ContentModal,
   DescriptionModal,
-  DeveloperModal,
+  PlatformModal,
   Footer,
   FooterContent,
   FooterInfo,
@@ -23,6 +22,7 @@ import { useEffect, useState } from "react";
 import { api, mapApi } from "../../services/api";
 import Modal from "../../components/Modal";
 import qrCode from "../../assets/frame.png";
+import { gameIn } from "../../services/security";
 
 function Home() {
   const [games, setGames] = useState([]);
@@ -34,8 +34,6 @@ function Home() {
   const [openModalGame, setOpenModalGame] = useState(false);
 
   const [mapModal, setMapModal] = useState([]);
-
-  // const [coordinateShop, setCoordinateShop] = useState([]);
 
   const [openModalMap, setOpenModalMap] = useState(false);
 
@@ -61,6 +59,7 @@ function Home() {
       const response = await api.get(`/games/${id}`);
 
       setGameModal(response.data);
+      gameIn(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -79,24 +78,13 @@ function Home() {
     }
   };
 
-  // const handleMap = async ({ number, street, city, state }) => {
-  //   try {
-  //     const response = await mapApi.get(
-  //       `json?address=${number}+${street},+${city},+${state}&key=AIzaSyD3w6lbgHvrSGFktOakzpXRsqhBEzLzFKY`
-  //     );
-
-  //     setCoordinateShop(response.data.results[0]);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
   useEffect(() => {
     const loadGames = async () => {
       try {
         const response = await api.get("/games");
 
         setGames(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error(error);
       }
@@ -149,26 +137,32 @@ function Home() {
                   {gameModal.Shops.map((s) => (
                     <Typography
                       gutterBottom
-                      variant="body2"
+                      variant="body1"
                       component="h3"
                       onClick={() => {
                         handleModalMaps(s.id);
                       }}
                     >
-                      R. {s.street}, {s.number} - {s.state}
+                      - {s.name}
                     </Typography>
                   ))}
                 </>
               )}
             </ShopsModal>
-            <DeveloperModal>
-              <Typography gutterBottom variant="body1" component="h2">
-                Desenvolvedor:
-              </Typography>
-              <Typography gutterBottom variant="body2" component="h3">
-                {gameModal.developer}
-              </Typography>
-            </DeveloperModal>
+            <PlatformModal>
+              {gameModal.Platforms && (
+                <>
+                  <Typography gutterBottom variant="h4" component="h1">
+                    Plataformas
+                  </Typography>
+                  {gameModal.Platforms.map((p) => (
+                    <Typography gutterBottom variant="body1" component="h3">
+                      - {p.name}
+                    </Typography>
+                  ))}
+                </>
+              )}
+            </PlatformModal>
             <PriceModal>
               <img src={qrCode} alt="QRcode Desconto" />
               <Button
@@ -208,9 +202,6 @@ function Home() {
                   <Typography gutterBottom variant="body1" component="h3">
                     Preço: R${g.price},00
                   </Typography>
-                  <Typography gutterBottom variant="body2" component="h4">
-                    Desenvolvedor: {g.developer}
-                  </Typography>
                 </CardContent>
               </ProductActionArea>
             </ProductCard>
@@ -243,7 +234,7 @@ function Home() {
               </Typography>
               {shops.map((s) => (
                 <Typography gutterBottom variant="body1" component="h3">
-                  {s.name} - R. {s.street}, {s.number}
+                  {s.name}
                 </Typography>
               ))}
             </FooterInfo>
