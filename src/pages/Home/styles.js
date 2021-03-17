@@ -9,6 +9,7 @@ export const Container = styled.div`
   background-color: var(--dark);
   display: flex;
   align-items: center;
+  position: relative;
   justify-content: space-between;
   overflow-y: auto;
 `;
@@ -198,4 +199,12 @@ export const PlatformModal = styled.div`
   flex-direction: column;
   align-items: flex-start;
   gap: 5px;
+`;
+
+export const ShopMap = styled.iframe`
+  width: 60vw;
+  height: 60vh;
+  border-radius: 10px;
+  border: 0;
+  margin-top: 15px;
 `;

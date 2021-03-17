@@ -9,19 +9,26 @@ import {
   FooterInfo,
   Header,
   Logo,
-  Menu,
   PriceModal,
   ProductActionArea,
   ProductCard,
   ProductImage,
   ShopsModal,
+  ShopMap,
 } from "./styles";
+import QRCode from "qrcode";
 import imageLogo from "../../assets/hustle.png";
-import { Button, CardContent, Typography } from "@material-ui/core";
+import {
+  Button,
+  CardContent,
+  CircularProgress,
+  Typography,
+} from "@material-ui/core";
 import { useEffect, useState } from "react";
-import { api, mapApi } from "../../services/api";
+import { api } from "../../services/api";
 import Modal from "../../components/Modal";
-import qrCode from "../../assets/frame.png";
+import Alert from "../../components/Alert";
+import Loading from "../../components/Loading";
 import { gameIn } from "../../services/security";
 
 function Home() {
@@ -31,42 +38,73 @@ function Home() {
 
   const [gameModal, setGameModal] = useState([]);
 
+  const [qrCode, setQrCode] = useState("");
+
   const [openModalGame, setOpenModalGame] = useState(false);
 
   const [mapModal, setMapModal] = useState([]);
 
   const [openModalMap, setOpenModalMap] = useState(false);
 
+  const [openAlert, setOpenAlert] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [reload, setReload] = useState(0);
+
+  const generateQrCode = async (gameId) => {
+    try {
+      const response = await QRCode.toDataURL(`/games/${gameId}`);
+
+      setQrCode(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleOrder = async (price, gameId) => {
     setOpenModalGame(false);
 
+    setIsLoading(true);
+
     try {
-      const response = await api.post("/order", {
+      await api.post("/order", {
         price: price,
         gameId: gameId,
       });
 
-      console.log(response.data);
+      setTimeout(() => {
+        setIsLoading(false);
+        setOpenAlert(true);
+      }, 2000);
     } catch (error) {
       console.error(error);
     }
   };
 
+  const handleReload = () => {
+    setReload(Math.random());
+  };
+
   const handleModalGame = async (id) => {
-    setOpenModalGame(true);
+    setIsLoading(true);
 
-    try {
-      const response = await api.get(`/games/${id}`);
+    setTimeout(() => {
+      setOpenModalGame(true);
 
-      setGameModal(response.data);
-      gameIn(response.data);
-    } catch (error) {
-      console.error(error);
-    }
+      setIsLoading(false);
+    }, 1000);
+
+    const response = await api.get(`/games/${id}`);
+
+    setGameModal(response.data);
+
+    gameIn(response.data);
   };
 
   const handleModalMaps = async (id) => {
     setOpenModalGame(false);
+
     setOpenModalMap(true);
 
     try {
@@ -79,39 +117,45 @@ function Home() {
   };
 
   useEffect(() => {
-    const loadGames = async () => {
-      try {
-        const response = await api.get("/games");
+    setIsLoading(true);
 
-        setGames(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error(error);
-      }
+    const loadGames = async () => {
+      const response = await api.get("/games");
+
+      setGames(response.data);
+    };
+
+    const loadShops = async () => {
+      const response = await api.get("/shops");
+
+      setShops(response.data);
     };
 
     loadGames();
 
-    const loadShops = async () => {
-      try {
-        const response = await api.get("/shops");
-
-        setShops(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     loadShops();
-  }, []);
+
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+  }, [reload]);
 
   return (
     <>
+      {isLoading && <Loading />}
+      {openAlert && (
+        <Alert
+          message={{
+            title: "Parabéns",
+            description: "Sua compra foi efetuada com sucesso!",
+          }}
+          handleClose={() => setOpenAlert(false)}
+        />
+      )}
       {openModalMap && (
-        <Modal
-          title={mapModal.name}
-          handleClose={() => setOpenModalMap(false)}
-        ></Modal>
+        <Modal title={mapModal.name} handleClose={() => setOpenModalMap(false)}>
+          <ShopMap src={mapModal.map_link} />
+        </Modal>
       )}
       {openModalGame && (
         <Modal
@@ -172,7 +216,11 @@ function Home() {
                 Comprar
               </Button>
               <Typography variant="body2" component="h1">
-                R$ {gameModal.price},00
+                {gameModal.price.toLocaleString("pt-br", {
+                  minimumFractionDigits: 2,
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </Typography>
             </PriceModal>
           </ContentModal>
@@ -180,27 +228,29 @@ function Home() {
       )}
       <Container>
         <Header>
-          <Logo src={imageLogo} />
-          <Menu>
-            <div>
-              <h1>Jogos</h1>
-            </div>
-            <div>
-              <h1>Lojas</h1>
-            </div>
-          </Menu>
+          <Logo src={imageLogo} onClick={() => handleReload()} />
         </Header>
         <Content>
           {games.map((g) => (
             <ProductCard>
-              <ProductActionArea onClick={() => handleModalGame(g.id)}>
+              <ProductActionArea
+                onClick={() => {
+                  handleModalGame(g.id);
+                  generateQrCode(g.id);
+                }}
+              >
                 <ProductImage image={g.image} alt="jogo" />
                 <CardContent>
                   <Typography gutterBottom variant="h5" component="h2">
                     {g.name}
                   </Typography>
                   <Typography gutterBottom variant="body1" component="h3">
-                    Preço: R${g.price},00
+                    Preço:{" "}
+                    {g.price.toLocaleString("pt-br", {
+                      minimumFractionDigits: 2,
+                      style: "currency",
+                      currency: "BRL",
+                    })}
                   </Typography>
                 </CardContent>
               </ProductActionArea>
@@ -214,10 +264,10 @@ function Home() {
                 Telefone
               </Typography>
               <Typography gutterBottom variant="body1" component="h3">
-                (11) 97605-7989
+                (11) 0800-1010
               </Typography>
               <Typography gutterBottom variant="body1" component="h3">
-                (11) 4321-2438
+                (11) 4002-8922
               </Typography>
             </FooterInfo>
             <FooterInfo>
@@ -225,7 +275,7 @@ function Home() {
                 E-mail
               </Typography>
               <Typography gutterBottom variant="body1" component="h3">
-                pedrohenrique_silvasantos@yahoo.com
+                contato@smartgames.com.br
               </Typography>
             </FooterInfo>
             <FooterInfo>

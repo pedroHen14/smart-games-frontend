@@ -1,10 +1,4 @@
-import styled, { keyframes } from "styled-components";
-
-const spin = keyframes`
-    100%{
-        transform: rotate(360deg);
-    }
-`;
+import styled from "styled-components";
 
 export const Container = styled.div`
   width: 100vw;
@@ -18,12 +12,4 @@ export const Container = styled.div`
   user-select: none;
   flex-direction: column;
   gap: 10px;
-
-  > img {
-    width: 100px;
-    /* height: 100px; */
-    animation: ${spin} 0.5s linear infinite;
-    /* opacity: 0.8; */
-    /* border: solid 2px var(--dark); */
-  }
 `;
