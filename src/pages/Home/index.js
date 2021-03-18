@@ -18,31 +18,25 @@ import {
 } from "./styles";
 import QRCode from "qrcode";
 import imageLogo from "../../assets/hustle.png";
-import {
-  Button,
-  CardContent,
-  CircularProgress,
-  Typography,
-} from "@material-ui/core";
+import { Button, CardContent, Typography } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import Modal from "../../components/Modal";
 import Alert from "../../components/Alert";
 import Loading from "../../components/Loading";
-import { gameIn } from "../../services/security";
 
 function Home() {
   const [games, setGames] = useState([]);
 
   const [shops, setShops] = useState([]);
 
-  const [gameModal, setGameModal] = useState([]);
+  const [gameInModal, setGameInModal] = useState([]);
 
   const [qrCode, setQrCode] = useState("");
 
   const [openModalGame, setOpenModalGame] = useState(false);
 
-  const [mapModal, setMapModal] = useState([]);
+  const [mapInModal, setMapInModal] = useState([]);
 
   const [openModalMap, setOpenModalMap] = useState(false);
 
@@ -76,12 +70,13 @@ function Home() {
       setTimeout(() => {
         setIsLoading(false);
         setOpenAlert(true);
-      }, 2000);
+      }, 750);
     } catch (error) {
       console.error(error);
     }
   };
 
+  //Função que lida com o reload da página
   const handleReload = () => {
     setReload(Math.random());
   };
@@ -93,13 +88,11 @@ function Home() {
       setOpenModalGame(true);
 
       setIsLoading(false);
-    }, 1000);
+    }, 750);
 
     const response = await api.get(`/games/${id}`);
 
-    setGameModal(response.data);
-
-    gameIn(response.data);
+    setGameInModal(response.data);
   };
 
   const handleModalMaps = async (id) => {
@@ -110,7 +103,7 @@ function Home() {
     try {
       const response = await api.get(`/shops/${id}`);
 
-      setMapModal(response.data);
+      setMapInModal(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -137,7 +130,7 @@ function Home() {
 
     setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 750);
   }, [reload]);
 
   return (
@@ -153,32 +146,38 @@ function Home() {
         />
       )}
       {openModalMap && (
-        <Modal title={mapModal.name} handleClose={() => setOpenModalMap(false)}>
-          <ShopMap src={mapModal.map_link} />
+        <Modal
+          title={mapInModal.name}
+          handleClose={() => {
+            setOpenModalMap(false);
+            setOpenModalGame(true);
+          }}
+        >
+          <ShopMap src={mapInModal.map_link} />
         </Modal>
       )}
       {openModalGame && (
         <Modal
-          title={gameModal.name}
+          title={gameInModal.name}
           handleClose={() => setOpenModalGame(false)}
         >
           <ContentModal>
-            <img src={gameModal.image} alt="Imagem do jogo"></img>
+            <img src={gameInModal.image} alt="Imagem do jogo"></img>
             <DescriptionModal>
               <Typography gutterBottom variant="h4" component="h1">
                 Descrição
               </Typography>
               <Typography gutterBottom variant="body2" component="h3">
-                {gameModal.description}
+                {gameInModal.description}
               </Typography>
             </DescriptionModal>
             <ShopsModal>
-              {gameModal.Shops && (
+              {gameInModal.Shops && (
                 <>
                   <Typography gutterBottom variant="h4" component="h1">
                     Lojas Disponíveis
                   </Typography>
-                  {gameModal.Shops.map((s) => (
+                  {gameInModal.Shops.map((s) => (
                     <Typography
                       gutterBottom
                       variant="body1"
@@ -194,12 +193,12 @@ function Home() {
               )}
             </ShopsModal>
             <PlatformModal>
-              {gameModal.Platforms && (
+              {gameInModal.Platforms && (
                 <>
                   <Typography gutterBottom variant="h4" component="h1">
                     Plataformas
                   </Typography>
-                  {gameModal.Platforms.map((p) => (
+                  {gameInModal.Platforms.map((p) => (
                     <Typography gutterBottom variant="body1" component="h3">
                       - {p.name}
                     </Typography>
@@ -211,12 +210,12 @@ function Home() {
               <img src={qrCode} alt="QRcode Desconto" />
               <Button
                 variant="contained"
-                onClick={() => handleOrder(gameModal.price, gameModal.id)}
+                onClick={() => handleOrder(gameInModal.price, gameInModal.id)}
               >
                 Comprar
               </Button>
               <Typography variant="body2" component="h1">
-                {gameModal.price.toLocaleString("pt-br", {
+                {gameInModal.price.toLocaleString("pt-br", {
                   minimumFractionDigits: 2,
                   style: "currency",
                   currency: "BRL",
